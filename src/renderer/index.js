@@ -1,18 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import './index.css';
+import ReactDOM from 'react-dom/client';
+import { HashRouter } from 'react-router-dom';
 import App from './App';
-import InputWindow from './components/InputWindow';
+import './styles/index.css';
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <React.StrictMode>
-    <Router>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/input" element={<InputWindow />} />
-      </Routes>
-    </Router>
-  </React.StrictMode>,
-  document.getElementById('root')
+    <HashRouter>
+      <App />
+    </HashRouter>
+  </React.StrictMode>
 );

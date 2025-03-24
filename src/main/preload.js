@@ -1,10 +1,11 @@
-// 预加载脚本，用于连接Electron主进程和渲染进程
 const { contextBridge, ipcRenderer } = require('electron');
 
-// 暴露API给渲染进程
+// 暴露安全的API给渲染进程
 contextBridge.exposeInMainWorld('electron', {
   // 想法管理
   saveIdea: (idea) => ipcRenderer.send('save-idea', idea),
+  onIdeaSaved: (callback) => ipcRenderer.on('idea-saved', (_, idea) => callback(idea)),
+  onIdeaSaveError: (callback) => ipcRenderer.on('idea-save-error', (_, error) => callback(error)),
   getAllIdeas: () => ipcRenderer.invoke('get-all-ideas'),
   getIdeaById: (id) => ipcRenderer.invoke('get-idea-by-id', id),
   updateIdea: (id, updates) => ipcRenderer.invoke('update-idea', id, updates),
