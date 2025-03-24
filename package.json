@@ -1,0 +1,51 @@
+{
+  "name": "ideasystemx",
+  "version": "1.0.0",
+  "description": "智能知识库系统，用于记录、管理和分析想法",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
+    "dev:react": "cross-env BROWSER=none react-scripts start",
+    "dev:electron": "wait-on http://localhost:3000 && electron .",
+    "build": "react-scripts build && electron-builder",
+    "build:win": "react-scripts build && electron-builder --win",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anyan2/ideaSystemX.git"
+  },
+  "keywords": [
+    "knowledge-base",
+    "idea-management",
+    "electron",
+    "react",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anyan2/ideaSystemX/issues"
+  },
+  "homepage": "./",
+  "dependencies": {},
+  "devDependencies": {},
+  "build": {
+    "appId": "com.ideasystemx.app",
+    "productName": "ideaSystemX",
+    "files": [
+      "build/**/*",
+      "src/main/**/*",
+      "src/common/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "public"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
