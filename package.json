@@ -1,56 +1,20 @@
 {
-  "name": "ideasystemx",
+  "name": "idea-system-x",
   "version": "1.0.0",
-  "description": "智能知识库系统，用于记录、管理和分析想法",
+  "description": "智能知识库系统，用于快速记录、管理和分析想法",
   "main": "src/main/main.js",
   "scripts": {
-    "start": "electron .",
-    "dev": "concurrently \"npm run dev:react\" \"npm run dev:electron\"",
-    "dev:react": "cross-env BROWSER=none react-scripts start",
-    "dev:electron": "wait-on http://localhost:3000 && electron .",
+    "start": "concurrently \"npm run start:react\" \"npm run start:electron\"",
+    "start:react": "cross-env BROWSER=none react-scripts start",
+    "start:electron": "wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .",
     "build": "react-scripts build",
-    "build:win": "electron-builder --win",
+    "build:electron": "electron-builder",
+    "build:all": "npm run build && npm run build:electron",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/anyan2/ideaSystemX.git"
-  },
-  "keywords": [
-    "knowledge-base",
-    "idea-management",
-    "electron",
-    "react",
-    "ai"
-  ],
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/anyan2/ideaSystemX/issues"
-  },
-  "homepage": "./",
-  "dependencies": {
-    "@emotion/react": "^11.11.0",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.11.16",
-    "@mui/material": "^5.13.0",
-    "electron-store": "^8.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.11.1",
-    "react-scripts": "5.0.1",
-    "sqlite3": "^5.1.6"
-  },
-  "devDependencies": {
-    "concurrently": "^8.0.1",
-    "cross-env": "^7.0.3",
-    "electron": "^24.3.0",
-    "electron-builder": "^23.6.0",
-    "wait-on": "^7.0.1"
-  },
   "build": {
-    "appId": "com.ideasystemx.app",
+    "appId": "com.ideaSystemX.app",
     "productName": "ideaSystemX",
     "files": [
       "build/**/*",
@@ -71,6 +35,29 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true
     }
+  },
+  "author": "Manus AI",
+  "license": "MIT",
+  "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.11.16",
+    "@mui/material": "^5.13.0",
+    "axios": "^1.4.0",
+    "electron-is-dev": "^2.0.0",
+    "electron-store": "^8.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.11.1",
+    "react-scripts": "5.0.1",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1",
+    "cross-env": "^7.0.3",
+    "electron": "^24.3.0",
+    "electron-builder": "^23.6.0",
+    "wait-on": "^7.0.1"
   },
   "browserslist": {
     "production": [

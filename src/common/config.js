@@ -1,69 +1,63 @@
-// 配置文件
 module.exports = {
-  // 应用程序设置
-  app: {
-    name: 'ideaSystemX',
-    version: '1.0.0',
-    description: '智能知识库系统，用于记录、管理和分析想法'
-  },
-  
-  // 数据库设置
   database: {
-    // SQLite数据库文件名
-    filename: 'ideas.db',
-    // 向量数据库文件名
-    vectorFilename: 'vectors.json'
+    filename: 'ideaSystemX.db',
+    vectorFilename: 'ideaSystemX_vectors.json'
   },
   
-  // AI服务提供商
+  defaultSettings: {
+    theme: 'light',
+    language: 'zh-CN',
+    ai: {
+      provider: '',
+      apiKey: '',
+      model: '',
+      embeddingModel: '',
+      endpoint: ''
+    }
+  },
+  
   aiProviders: [
     {
       id: 'openai',
       name: 'OpenAI',
+      requiresEndpoint: false,
       models: [
-        { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
-        { id: 'gpt-4', name: 'GPT-4' }
+        { id: 'gpt-4o', name: 'GPT-4o' },
+        { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+        { id: 'gpt-4', name: 'GPT-4' },
+        { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
       ],
       embeddingModels: [
-        { id: 'text-embedding-ada-002', name: 'Ada Embedding' }
-      ],
-      requiresEndpoint: false
+        { id: 'text-embedding-3-small', name: 'Text Embedding 3 Small' },
+        { id: 'text-embedding-3-large', name: 'Text Embedding 3 Large' },
+        { id: 'text-embedding-ada-002', name: 'Text Embedding Ada 002' }
+      ]
     },
     {
       id: 'azure',
       name: 'Azure OpenAI',
+      requiresEndpoint: true,
       models: [
-        { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
-        { id: 'gpt-4', name: 'GPT-4' }
+        { id: 'gpt-4', name: 'GPT-4' },
+        { id: 'gpt-35-turbo', name: 'GPT-3.5 Turbo' }
       ],
       embeddingModels: [
-        { id: 'text-embedding-ada-002', name: 'Ada Embedding' }
-      ],
-      requiresEndpoint: true
+        { id: 'text-embedding-ada-002', name: 'Text Embedding Ada 002' }
+      ]
     },
     {
       id: 'anthropic',
       name: 'Anthropic',
+      requiresEndpoint: false,
       models: [
-        { id: 'claude-2', name: 'Claude 2' },
-        { id: 'claude-instant-1', name: 'Claude Instant' }
+        { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+        { id: 'claude-3-sonnet-20240229', name: 'Claude 3 Sonnet' },
+        { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku' },
+        { id: 'claude-2.1', name: 'Claude 2.1' },
+        { id: 'claude-2.0', name: 'Claude 2.0' },
+        { id: 'claude-instant-1.2', name: 'Claude Instant 1.2' }
       ],
-      embeddingModels: [],
-      requiresEndpoint: false
+      embeddingModels: []
     }
-  ],
-  
-  // 默认设置
-  defaultSettings: {
-    theme: 'light', // 'light' 或 'dark'
-    startWithSystem: true, // 是否随系统启动
-    minimizeToTray: true, // 关闭窗口时最小化到系统托盘
-    ai: {
-      provider: '', // 默认为空，用户需要配置
-      apiKey: '',
-      model: '',
-      embeddingModel: '',
-      endpoint: '' // 仅Azure需要
-    }
-  }
+  ]
 };

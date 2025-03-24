@@ -3,25 +3,43 @@ const { contextBridge, ipcRenderer } = require('electron');
 // 暴露安全的API给渲染进程
 contextBridge.exposeInMainWorld('electron', {
   // 想法管理
-  saveIdea: (idea) => ipcRenderer.send('save-idea', idea),
-  onIdeaSaved: (callback) => ipcRenderer.on('idea-saved', (_, idea) => callback(idea)),
-  onIdeaSaveError: (callback) => ipcRenderer.on('idea-save-error', (_, error) => callback(error)),
+  saveIdea: (idea) => ipcRenderer.invoke('save-idea', idea),
   getAllIdeas: () => ipcRenderer.invoke('get-all-ideas'),
-  getIdeaById: (id) => ipcRenderer.invoke('get-idea-by-id', id),
+  getIdea: (id) => ipcRenderer.invoke('get-idea', id),
   updateIdea: (id, updates) => ipcRenderer.invoke('update-idea', id, updates),
   deleteIdea: (id) => ipcRenderer.invoke('delete-idea', id),
   searchIdeas: (query) => ipcRenderer.invoke('search-ideas', query),
+  filterIdeasByTags: (tags) => ipcRenderer.invoke('filter-ideas-by-tags', tags),
   
-  // 窗口控制
-  hideInputWindow: () => ipcRenderer.send('hide-input-window'),
+  // 标签管理
+  getAllTags: () => ipcRenderer.invoke('get-all-tags'),
+  
+  // 设置管理
+  getSettings: () => ipcRenderer.invoke('get-settings'),
+  saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   
   // AI功能
-  analyzeIdea: (content) => ipcRenderer.invoke('analyze-idea', content),
-  findRelatedIdeas: (content) => ipcRenderer.invoke('find-related-ideas', content),
-  generateReminder: (idea) => ipcRenderer.invoke('generate-reminder', idea),
+  getAIProviders: () => ipcRenderer.invoke('get-ai-providers'),
+  checkAIConfig: () => ipcRenderer.invoke('check-ai-config'),
+  generateSummary: (ideas, topic) => ipcRenderer.invoke('generate-summary', ideas, topic),
   answerQuery: (query) => ipcRenderer.invoke('answer-query', query),
   
-  // 设置
-  getSettings: () => ipcRenderer.invoke('get-settings'),
-  updateSettings: (settings) => ipcRenderer.invoke('update-settings', settings),
+  // 提醒管理
+  getAllReminders: () => ipcRenderer.invoke('get-all-reminders'),
+  completeReminder: (id) => ipcRenderer.invoke('complete-reminder', id),
+  
+  // 窗口控制
+  closeInputWindow: () => ipcRenderer.send('close-input-window'),
+  minimizeInputWindow: () => ipcRenderer.send('minimize-input-window'),
+  openMainWindow: () => ipcRenderer.send('open-main-window'),
+  
+  // 事件监听
+  onPendingReminders: (callback) => {
+    ipcRenderer.on('pending-reminders', (event, reminders) => callback(reminders));
+    
+    // 返回清理函数
+    return () => {
+      ipcRenderer.removeAllListeners('pending-reminders');
+    };
+  }
 });
