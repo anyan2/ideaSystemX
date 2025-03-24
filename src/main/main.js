@@ -1,6 +1,13 @@
 const { app, BrowserWindow, globalShortcut, ipcMain, Tray, Menu } = require('electron');
 const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
+const dbService = require('./database');
+const vectorDbService = require('./vectordb');
+const aiService = require('./ai-service');
+const Store = require('electron-store');
+
+// 初始化配置存储
+const store = new Store();
 
 // 保持对window对象的全局引用，避免JavaScript对象被垃圾回收时，窗口被自动关闭
 let mainWindow;
@@ -14,7 +21,7 @@ function createMainWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: true,
+      preload: path.join(__dirname, 'preload.js')
     },
     icon: path.join(__dirname, '../../public/icon.png'),
   });
@@ -46,7 +53,7 @@ function createInputWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: true,
+      preload: path.join(__dirname, 'preload.js')
     },
     icon: path.join(__dirname, '../../public/icon.png'),
   });
@@ -125,14 +132,159 @@ app.on('will-quit', () => {
 });
 
 // IPC通信处理
-ipcMain.on('save-idea', (event, idea) => {
-  // 这里将连接到数据库服务
-  console.log('保存想法:', idea);
-  // 后续会实现数据库存储逻辑
+ipcMain.on('save-idea', async (event, idea) => {
+  try {
+    const savedIdea = await dbService.saveIdea(idea);
+    
+    // 如果AI配置有效，尝试生成嵌入和分析
+    if (aiService.checkConfiguration()) {
+      try {
+        // 生成嵌入向量
+        const embedding = await aiService.generateEmbedding(idea.content);
+        vectorDbService.addVector(savedIdea.id, embedding, { content: idea.content });
+        
+        // 分析想法内容
+        const analysis = await aiService.analyzeIdea(idea.content);
+        await dbService.updateIdea(savedIdea.id, {
+          ...savedIdea,
+          tags: analysis.tags,
+          summary: analysis.summary
+        });
+      } catch (aiError) {
+        console.error('AI处理失败，但想法已保存:', aiError);
+      }
+    }
+    
+    event.reply('idea-saved', savedIdea);
+  } catch (error) {
+    console.error('保存想法失败:', error);
+    event.reply('idea-save-error', error.message);
+  }
+});
+
+ipcMain.handle('get-all-ideas', async () => {
+  try {
+    return await dbService.getAllIdeas();
+  } catch (error) {
+    console.error('获取想法失败:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('get-idea-by-id', async (event, id) => {
+  try {
+    return await dbService.getIdeaById(id);
+  } catch (error) {
+    console.error('获取想法失败:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('update-idea', async (event, id, updates) => {
+  try {
+    return await dbService.updateIdea(id, updates);
+  } catch (error) {
+    console.error('更新想法失败:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('delete-idea', async (event, id) => {
+  try {
+    await dbService.deleteIdea(id);
+    vectorDbService.deleteVector(id);
+    return { success: true, id };
+  } catch (error) {
+    console.error('删除想法失败:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('search-ideas', async (event, query) => {
+  try {
+    return await dbService.searchIdeasByContent(query);
+  } catch (error) {
+    console.error('搜索想法失败:', error);
+    throw error;
+  }
 });
 
 ipcMain.on('hide-input-window', () => {
   if (inputWindow) {
     inputWindow.hide();
   }
+});
+
+// AI相关功能
+ipcMain.handle('analyze-idea', async (event, content) => {
+  try {
+    return await aiService.analyzeIdea(content);
+  } catch (error) {
+    console.error('分析想法失败:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('find-related-ideas', async (event, content) => {
+  try {
+    if (!aiService.checkConfiguration()) {
+      return [];
+    }
+    
+    const embedding = await aiService.generateEmbedding(content);
+    const similarVectors = vectorDbService.searchSimilarVectors(embedding, 5);
+    
+    // 获取相关想法的完整数据
+    const relatedIdeas = [];
+    for (const item of similarVectors) {
+      const idea = await dbService.getIdeaById(item.id);
+      if (idea) {
+        relatedIdeas.push({
+          ...idea,
+          relevance: item.similarity
+        });
+      }
+    }
+    
+    return relatedIdeas;
+  } catch (error) {
+    console.error('查找相关想法失败:', error);
+    return [];
+  }
+});
+
+ipcMain.handle('generate-reminder', async (event, idea) => {
+  try {
+    return await aiService.generateReminder(idea);
+  } catch (error) {
+    console.error('生成提醒失败:', error);
+    throw error;
+  }
+});
+
+ipcMain.handle('answer-query', async (event, query) => {
+  try {
+    // 获取所有想法作为上下文
+    const allIdeas = await dbService.getAllIdeas();
+    return await aiService.answerQuery(query, allIdeas);
+  } catch (error) {
+    console.error('回答查询失败:', error);
+    throw error;
+  }
+});
+
+// 设置相关功能
+ipcMain.handle('get-settings', async () => {
+  return store.get('settings') || {};
+});
+
+ipcMain.handle('update-settings', async (event, settings) => {
+  store.set('settings', settings);
+  
+  // 更新AI服务配置
+  if (settings.ai) {
+    aiService.setConfiguration(settings.ai);
+  }
+  
+  return { success: true };
 });
